@@ -13,6 +13,15 @@ Vagrant.configure(2) do |config|
     config.vm.synced_folder '.', '/var/vagrant', type: 'nfs', nfs_version: '4.2', nfs_udp: false
   end
 
+  # configure the desktop.
+  # NB these settings were obtained as follows:
+  #       1. dconf dump / >dconf.orig.ini
+  #       2. edit the appearance settings using the GUI
+  #       3. dconf dump / >dconf.ini
+  #       4. diff -u dconf.orig.ini dconf.ini
+  # See /usr/share/glib-2.0/schemas/org.gnome.desktop.interface.gschema.xml
+  config.vm.provision 'shell', name: 'Set dark theme', privileged: false, inline: "dbus-launch dconf write /org/gnome/desktop/interface/color-scheme \"'prefer-dark'\""
+
   # show system information.
   config.vm.provision 'shell', inline: 'cat /etc/os-release'
   config.vm.provision 'shell', inline: 'uname -a'
