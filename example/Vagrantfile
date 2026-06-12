@@ -1,0 +1,22 @@
+Vagrant.configure(2) do |config|
+  config.vm.box = 'fedora-bluefin-44-amd64'
+
+  config.vm.provider 'libvirt' do |lv, config|
+    lv.memory = 4 * 1024
+    lv.cpus = 4
+    lv.cpu_mode = 'host-passthrough'
+    lv.nested = true
+    lv.keymap = 'pt'
+    lv.disk_driver :discard => 'unmap', :cache => 'unsafe'
+    # NB in Fedora Bluefin, / is read-only, so use /var instead.
+    config.vm.synced_folder '.', '/vagrant', disabled: true
+    config.vm.synced_folder '.', '/var/vagrant', type: 'nfs', nfs_version: '4.2', nfs_udp: false
+  end
+
+  # show system information.
+  config.vm.provision 'shell', inline: 'cat /etc/os-release'
+  config.vm.provision 'shell', inline: 'uname -a'
+  config.vm.provision 'shell', inline: 'echo "machine-id is $(cat /etc/machine-id)"'
+  config.vm.provision 'shell', inline: 'lsblk -o KNAME,SIZE,TRAN,FSTYPE,UUID,LABEL,MODEL,SERIAL'
+  config.vm.provision 'shell', inline: 'df -h'
+end
