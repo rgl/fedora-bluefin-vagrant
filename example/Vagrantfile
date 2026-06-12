@@ -22,6 +22,27 @@ Vagrant.configure(2) do |config|
   # See /usr/share/glib-2.0/schemas/org.gnome.desktop.interface.gschema.xml
   config.vm.provision 'shell', name: 'Set dark theme', privileged: false, inline: "dbus-launch dconf write /org/gnome/desktop/interface/color-scheme \"'prefer-dark'\""
 
+  # enable remote desktop.
+  # NB you can connect to the VM using RDP:
+  #     xfreerdp /v:192.168.121.23:3389 /u:rdp /p:vagrant /dynamic-resolution /scale-desktop:200
+  config.vm.provision 'shell', name: 'Enable remote desktop', inline: <<-EOF
+    set -eux
+    grdctl --system rdp set-credentials rdp vagrant
+    sudo -u gnome-remote-desktop \
+      openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj /CN=rdp \
+      -out ~gnome-remote-desktop/.local/share/gnome-remote-desktop/tls.crt \
+      -keyout ~gnome-remote-desktop/.local/share/gnome-remote-desktop/tls.key
+    grdctl --system rdp set-tls-key ~gnome-remote-desktop/.local/share/gnome-remote-desktop/tls.key
+    grdctl --system rdp set-tls-cert ~gnome-remote-desktop/.local/share/gnome-remote-desktop/tls.crt
+    grdctl --system rdp enable
+    systemctl daemon-reload
+    systemctl enable gnome-remote-desktop
+    systemctl restart gnome-remote-desktop
+    systemctl status gnome-remote-desktop
+    grdctl --system status --show-credentials
+    ip addr show eth0
+    EOF
+
   # show system information.
   config.vm.provision 'shell', inline: 'cat /etc/os-release'
   config.vm.provision 'shell', inline: 'uname -a'
