@@ -50,6 +50,18 @@ Vagrant.configure(2) do |config|
     uname -a
     echo "machine-id is $(cat /etc/machine-id)"
     lsblk -o KNAME,SIZE,TRAN,FSTYPE,UUID,LABEL,MODEL,SERIAL
+    sfdisk -l /dev/sda
     df -h
+    lsblk
+    findmnt /
+    findmnt /etc
+    findmnt /var
+    findmnt /sysroot
+    mount | grep /dev/sda | sort
+    btrfs filesystem show
+    btrfs filesystem df -h /sysroot
+    btrfs subvolume list -t /sysroot
+    bootc --version
+    bootc status #--format yaml
     EOF
 end
